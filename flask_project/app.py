@@ -1,9 +1,33 @@
 from flask import Flask, abort, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user,logout_user, login_required,current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost/my_memo_app'
+# SQLAlchemy의 수정 추적 기능을 비활성화
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'mysecretkey'
 db = SQLAlchemy(app)
+
+class User(UserMixin,db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True,
+nullable=False)
+    email = db.Colum(db.String(100),unique=True,
+nullable=False)
+    password_hash = db.Column(db.String(512))
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self,password):
+        return check_password_hash(self.password_hash,password)
+    
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view='login' #로그인 페이지의 뷰 함수 이름
 
 # 데이터 모델 정의
 class Memo(db.Model):
