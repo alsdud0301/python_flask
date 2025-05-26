@@ -15,7 +15,7 @@ class User(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True,
 nullable=False)
-    email = db.Colum(db.String(100),unique=True,
+    email = db.Column(db.String(100),unique=True,
 nullable=False)
     password_hash = db.Column(db.String(512))
     
@@ -25,9 +25,7 @@ nullable=False)
     def check_password(self,password):
         return check_password_hash(self.password_hash,password)
     
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+
 
 @app.route('/signup',methods=['GET','POST'])
 def signup():
@@ -47,6 +45,10 @@ def signup():
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view='login' #로그인 페이지의 뷰 함수 이름
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # 데이터 모델 정의
 class Memo(db.Model):
