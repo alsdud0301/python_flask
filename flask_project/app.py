@@ -25,6 +25,25 @@ nullable=False)
     def check_password(self,password):
         return check_password_hash(self.password_hash,password)
     
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/signup',methods=['GET','POST'])
+def signup():
+    if request.method=='POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        
+        user = User(username = username, email=email)
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        return jsonify({'message':'Account created successfully'}),201
+    return render_template('signup.html')
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view='login' #로그인 페이지의 뷰 함수 이름
@@ -86,3 +105,18 @@ def delete_memo(id):
         return jsonify({'message': 'Memo deleted'}),200
     else:
         abort(404,description="memo not found")
+
+@app.route('/login',methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        user = User.query.filter_by(username = request.form['username']).first()
+        if user and user.check_password(request.form['password']):
+            login_user(user)
+            return jsonify({'message':'Logged in successfully'}), 200
+        return abort(401, description="Invalied credentials")
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    logout_user
+    return jsonify({'message' : 'Logged out successfully'}),200
