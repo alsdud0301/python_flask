@@ -53,6 +53,7 @@ def load_user(user_id):
 # 데이터 모델 정의
 class Memo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id')) #사용자 참조 추가
     title = db.Column(db.String(100),nullable=False)
     content = db.Column(db.String(1000), nullable=False)
     
