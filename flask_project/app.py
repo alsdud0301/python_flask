@@ -83,31 +83,33 @@ def create_memo():
     db.session.commit()
     return jsonify({'message': 'Memo created'}),201
 
-@app.route('/memos',methods=['GET'])
+@app.route('/memos', methods=['GET'])
+@login_required
 def list_memos():
-    memos = Memo.query.all()
-    return jsonify([{'id':memo.id, 'title': memo.title,'content': memo.content} for memo in memos]),200
+    memos = Memo.query.filter_by(user_id=current_user.id).all()
+    # 현재 로그인한 사용자의 메모만 조회
+    return render_template('memos.html', memos=memos, username=current_user.username) #사용자별 메모를 표시하는 템플릿 렌더링
 
 @app.route('/memos/update/<int:id>', methods=['PUT'])
 def update_memo(id):
-    memo = Memo.query.filter_by(id=id).first()
+    memo = Memo.query.filter_by(id=id, user_id=current_user.id).first()
     if memo:
         memo.title=request.json['title']
         memo.content = request.json['content']
         db.session.commit()
         return jsonify({'message':'Memo updated'}),200
     else:
-        abort(404,description="memo not found")
+        abort(404,description="memo not found or not authorized")
 
 @app.route('/memos/delete/<int:id>', methods=['DELETE'])
 def delete_memo(id):
-    memo = Memo.query.filter_by(id=id).first()
+    memo = Memo.query.filter_by(id=id,user_id = current_user.id).first()
     if memo:
         db.session.delete(memo)
         db.session.commit()
         return jsonify({'message': 'Memo deleted'}),200
     else:
-        abort(404,description="memo not found")
+        abort(404,description="memo not found or not authorized")
 
 @app.route('/login',methods=['GET','POST'])
 def login():
@@ -125,9 +127,3 @@ def logout():
     return jsonify({'message' : 'Logged out successfully'}),200
 
 
-@app.route('/memos', methods=['GET'])
-@login_required
-def list_memos():
-    memos = Memo.query.filter_by(user_id=current_user.id).all()
-    # 현재 로그인한 사용자의 메모만 조회
-    return render_template('memos.html', memos=memos, username=current_user.username) #사용자별 메모를 표시하는 템플릿 렌더링
