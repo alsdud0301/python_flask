@@ -78,7 +78,7 @@ with app.app_context():
 def create_memo():
     title = request.json['title']
     content = request.json['content']
-    new_memo = Memo(title=title,content=content)
+    new_memo = Memo(user_id=current_user.id,title=title, content=content)
     db.session.add(new_memo)
     db.session.commit()
     return jsonify({'message': 'Memo created'}),201
