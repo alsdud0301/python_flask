@@ -123,3 +123,11 @@ def login():
 def logout():
     logout_user
     return jsonify({'message' : 'Logged out successfully'}),200
+
+
+@app.route('/memos', methods=['GET'])
+@login_required
+def list_memos():
+    memos = Memo.query.filter_by(user_id=current_user.id).all()
+    # 현재 로그인한 사용자의 메모만 조회
+    return render_template('memos.html', memos=memos, username=current_user.username) #사용자별 메모를 표시하는 템플릿 렌더링
